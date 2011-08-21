@@ -15,6 +15,8 @@ extruderForward  = emit "M101"
 extruderReverse  = emit "M102"
 extruderOff      = emit "M103"
 absolutePosition = emit "G90"
+conveyorOn       = emit "M106"
+conveyorOff      = emit "M107"
 
 pause::Int->Print ()
 pause milis      = emit $ ap "G4 P" (bshow milis)
@@ -48,15 +50,21 @@ move2 (x,y) speed = do
   (_,_,z) <- getLocation
   move3 (x,y,z) speed
 -- move relative to the current location
-moveRelative::Point3->Maybe Double->Print ()
-moveRelative (x,y,z) speed = do
+moveRel3::Point3->Maybe Double->Print ()
+moveRel3 (x,y,z) speed = do
   (x',y',z') <- getLocation
   move3 (x+x',y+y',z+z') speed
   
+moveRel2::Point2->Maybe Double->Print ()
+moveRel2 (x,y) speed = do
+  (x',y',z) <- getLocation
+  move3 (x'+x,y'+y,z) speed
+
 homeMax::B.ByteString->Double->Print ()
 homeMax axis feed = emit $ con ["G162 ",axis," F",bshow feed]
   
 homeMin::B.ByteString->Double->Print ()
 homeMin axis feed = emit $ con ["G161 ",axis," F",bshow feed]
 
-
+comment::String->Print ()
+comment s = emit $ con ["( ",B.pack s," )"]
