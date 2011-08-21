@@ -25,8 +25,8 @@ waitForTemp tool = emit $ ap "M6 T" (bshow tool)
 setCurrentHome::(Int,Int,Int)->Print ()
 setCurrentHome (x,y,z) = emit $ con ["G92 X",bshow x," Y",bshow y," Z",bshow z, " "]
 
-setToolSpeed::Int->Double->Print ()
-setToolSpeed tool speed = emit $ con ["M",bshow (1+tool),"08 R",bshow speed]
+toolSpeed::Int->Double->Print ()
+toolSpeed tool speed = emit $ con ["M",bshow (1+tool),"08 R",bshow speed]
 
 platformTemp::Int->Int->Print ()
 platformTemp tool temp = emit $ con ["M109 S",bshow temp," T",bshow tool]
@@ -52,3 +52,11 @@ moveRelative::Point3->Maybe Double->Print ()
 moveRelative (x,y,z) speed = do
   (x',y',z') <- getLocation
   move3 (x+x',y+y',z+z') speed
+  
+homeMax::B.ByteString->Double->Print ()
+homeMax axis feed = emit $ con ["G162 ",axis," F",bshow feed]
+  
+homeMin::B.ByteString->Double->Print ()
+homeMin axis feed = emit $ con ["G161 ",axis," F",bshow feed]
+
+
