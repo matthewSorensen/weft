@@ -2,15 +2,16 @@
 module Weft.Setup (
   PrinterConfig (..),
   defaultConfig,
-  setup,
-  raft,
-  end
+  printModel,
+  raft
   ) where
 import Weft.Monad
 import Control.Monad
 import Weft.Commands
 
-setup conf = initialize conf >> home >> wait
+printModel::PrinterConfig->Print ()->Print ()
+printModel c model = initialize c >> home >> wait >> model >> end c
+
 data PrinterConfig = Config { extSpeed::Double,
                               extTemp::Int,
                               platTemp::Int,
@@ -43,21 +44,6 @@ wait = do
   extruderForward
   pause 5000
   extruderOff
-
--- Takes two corners (smaller values first) and prints a raft.
-raft::PrinterConfig->Point2->Point2->Print ()
-raft conf (x,y) (x',y') = do
-  comment "raft"
-  setFeedrate 270
-  move3 (0,0,layer conf) Nothing
-  extruderForward
-  -- Go back and forth laying down thick lines with 1.5mm between their centers.
-  mapM_ (flip move2 Nothing) [(i+j,k) | i<-[x,3+x..x'],(j,k)<-[(0,y),(0,y'),(1.5,y'),(1.5,y)], (i+1.5) <= x']            
-  -- The extruder is now at (<some x>,y), and it's time for the thinner lines
-  moveRel3 (0,0,layer conf) Nothing
-  setFeedrate 1750
-  (x',_,_) <- getLocation
-  mapM_ (flip move2 Nothing) [(k,i+j) | i<-[y,2+y..y'],(j,k)<-[(0,x'),(0,x),(1,x),(1,x')], (i+1) <= y']
              
 end::PrinterConfig->Print ()
 end c = do
@@ -76,3 +62,18 @@ end c = do
   conveyorOff
   platformTemp 0 0
   extruderTemp 0 0
+
+-- Takes two corners (smaller values first) and prints a raft.
+raft::PrinterConfig->Point2->Point2->Print ()
+raft conf (x,y) (x',y') = do
+  comment "raft"
+  setFeedrate 270
+  move3 (0,0,layer conf) Nothing
+  extruderForward
+  -- Go back and forth laying down thick lines with 1.5mm between their centers.
+  mapM_ (flip move2 Nothing) [(i+j,k) | i<-[x,3+x..x'],(j,k)<-[(0,y),(0,y'),(1.5,y'),(1.5,y)], (i+1.5) <= x']            
+  -- The extruder is now at (<some x>,y), and it's time for the thinner lines
+  moveRel3 (0,0,layer conf) Nothing
+  setFeedrate 1750
+  (x',_,_) <- getLocation
+  mapM_ (flip move2 Nothing) [(k,i+j) | i<-[y,2+y..y'],(j,k)<-[(0,x'),(0,x),(1,x),(1,x')], (i+1) <= y']
