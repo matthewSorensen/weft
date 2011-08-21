@@ -37,22 +37,19 @@ platformTemp tool temp = emit $ con ["M109 S",bshow temp," T",bshow tool]
 extruderTemp::Int->Int->Print ()
 extruderTemp tool temp =   emit $ con ["M104 S",bshow temp," T",bshow tool] 
 
-setFeedrate::Double->Print ()
-setFeedrate r = getPrinterState >>= setPrinterState . (\s-> s {feedrate = Just r})
-
-
-move::Point a=>a->Maybe Double->Print ()
-move p speed = do
-  feed <- normalizeFeedrate speed
+ 
+move::Point a=>a->Print ()
+move p = do
+  r <- getFeedrate
   l@(x,y,z) <- fmap (lift3 p) getLocation
   setLocation l
-  emit $ con ["G1 X",bshow x," Y",bshow y," Z",bshow z," F",bshow feed]  
-moveRel::Point a=>a->Maybe Double->Print ()
-moveRel p speed = do
-  feed <- normalizeFeedrate speed
+  emit $ con ["G1 X",bshow x," Y",bshow y," Z",bshow z," F",bshow r]  
+moveRel::Point a=>a->Print ()
+moveRel p = do
+  r <- getFeedrate
   l@(x,y,z) <- fmap (lift3Rel p) getLocation
   setLocation l
-  emit $ con ["G1 X",bshow x," Y",bshow y," Z",bshow z," F",bshow feed]  
+  emit $ con ["G1 X",bshow x," Y",bshow y," Z",bshow z," F",bshow r]  
 
 homeMax::B.ByteString->Double->Print ()
 homeMax axis feed = emit $ con ["G162 ",axis," F",bshow feed]
@@ -61,4 +58,4 @@ homeMin::B.ByteString->Double->Print ()
 homeMin axis feed = emit $ con ["G161 ",axis," F",bshow feed]
 
 comment::String->Print ()
-comment s = emit $ con ["( ",B.pack s," )"]
+comment s = emit $ con ["(",B.pack s,")"]

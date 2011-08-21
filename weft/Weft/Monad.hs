@@ -9,7 +9,7 @@ import qualified Data.ByteString as B
 type ByteString = B.ByteString
 
 data PrinterState = PState {output::ByteString->IO (),
-                            feedrate::Maybe Double}
+                            feedrate::Double}
                
 type Print = StateT (Point3,PrinterState) IO
 
@@ -29,9 +29,21 @@ emit::ByteString->Print ()
 emit b = getPrinterState >>= (\s-> liftIO $ (output s) b)
 
 runWithIOAction::(ByteString->IO ())->Print a->IO a
-runWithIOAction dest instr = let init = ((0,0,0), PState {output = dest, feedrate = Nothing})
+runWithIOAction dest instr = let init = ((0,0,0), PState {output = dest, feedrate = 1000})
                              in evalStateT instr init
+
 -- Throws an error if it can't find any feedrate                                
-normalizeFeedrate::Maybe Double->Print Double
-normalizeFeedrate = maybe (fmap fromState getPrinterState) return
-  where fromState = maybe (error "No feedrate defined in printer state") id . feedrate
+getFeedrate::Print Double
+getFeedrate = fmap feedrate getPrinterState
+  
+setFeedrate::Double->Print ()
+setFeedrate r = getPrinterState >>= setPrinterState . (\s-> s {feedrate = r})
+
+withRate::Double->Print a->Print a
+withRate r action = do
+  r' <- getFeedrate
+  setFeedrate r
+  a <- action
+  setFeedrate r'
+  return a
+  
