@@ -1,6 +1,7 @@
 {-# LANGUAGE OverloadedStrings #-}
 module Weft.Commands where
 import Weft.Monad
+import Weft.Points
 import qualified Data.ByteString.Char8 as B
 
 ap = B.append
@@ -39,26 +40,19 @@ extruderTemp tool temp =   emit $ con ["M104 S",bshow temp," T",bshow tool]
 setFeedrate::Double->Print ()
 setFeedrate r = getPrinterState >>= setPrinterState . (\s-> s {feedrate = Just r})
 
-move3::Point3->Maybe Double->Print ()
-move3 p@(x,y,z) speed = do
+
+move::Point a=>a->Maybe Double->Print ()
+move p speed = do
   feed <- normalizeFeedrate speed
-  setLocation p
+  l@(x,y,z) <- fmap (lift3 p) getLocation
+  setLocation l
   emit $ con ["G1 X",bshow x," Y",bshow y," Z",bshow z," F",bshow feed]  
--- Make a 2d movement on the same z-plane
-move2::Point2->Maybe Double->Print ()
-move2 (x,y) speed = do
-  (_,_,z) <- getLocation
-  move3 (x,y,z) speed
--- move relative to the current location
-moveRel3::Point3->Maybe Double->Print ()
-moveRel3 (x,y,z) speed = do
-  (x',y',z') <- getLocation
-  move3 (x+x',y+y',z+z') speed
-  
-moveRel2::Point2->Maybe Double->Print ()
-moveRel2 (x,y) speed = do
-  (x',y',z) <- getLocation
-  move3 (x'+x,y'+y,z) speed
+moveRel::Point a=>a->Maybe Double->Print ()
+moveRel p speed = do
+  feed <- normalizeFeedrate speed
+  l@(x,y,z) <- fmap (lift3Rel p) getLocation
+  setLocation l
+  emit $ con ["G1 X",bshow x," Y",bshow y," Z",bshow z," F",bshow feed]  
 
 homeMax::B.ByteString->Double->Print ()
 homeMax axis feed = emit $ con ["G162 ",axis," F",bshow feed]

@@ -1,6 +1,7 @@
 {-# LANGUAGE OverloadedStrings, PackageImports, TupleSections #-} 
 module Weft.Monad where
 
+import Weft.Points
 import "monads-fd" Control.Monad.State
 import "monads-fd" Control.Monad.Trans
 import qualified Data.ByteString as B
@@ -10,9 +11,6 @@ type ByteString = B.ByteString
 data PrinterState = PState {output::ByteString->IO (),
                             feedrate::Maybe Double}
                
-type Point3 = (Double,Double,Double)
-type Point2 = (Double,Double)
-
 type Print = StateT (Point3,PrinterState) IO
 
 getLocation::Print Point3

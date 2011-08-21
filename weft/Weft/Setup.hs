@@ -8,6 +8,9 @@ module Weft.Setup (
 import Weft.Monad
 import Control.Monad
 import Weft.Commands
+import Weft.Points
+
+default(Double, Int)
 
 printModel::PrinterConfig->Print ()->Print ()
 printModel c model = initialize c >> home >> wait >> model >> end c
@@ -39,7 +42,7 @@ home = do
   emit "M132 X Y Z A B"
 wait = do
   comment "waiting for things to heat up"
-  move3 (52,-57,10) (Just 3300)
+  move ((52,-57,10)::Point3) (Just 3300)
   waitForTemp 0
   extruderForward
   pause 5000
@@ -49,8 +52,8 @@ end::PrinterConfig->Print ()
 end c = do
   comment "shutting down"
   platformTemp 0 95
-  mapM_ (flip move3 $ Just 2400) [(6.18,4.11,5.1),(5.25,4.0,5.1),(4.91,4.33,5.1)]
-  move2 (0,55) $ Just 3300
+  mapM_ (flip move $ Just 2400) ([(6.18,4.11,5.1),(5.25,4.0,5.1),(4.91,4.33,5.1)]::[Point3])
+  move ((0,55)::Point2) $ Just 3300
   toolSpeed 0 $ extSpeed c
   extruderReverse
   pause 2000
@@ -68,12 +71,12 @@ raft::PrinterConfig->Point2->Point2->Print ()
 raft conf (x,y) (x',y') = do
   comment "raft"
   setFeedrate 270
-  move3 (0,0,layer conf) Nothing
+  move ((0,0,layer conf)::Point3) Nothing
   extruderForward
   -- Go back and forth laying down thick lines with 1.5mm between their centers.
-  mapM_ (flip move2 Nothing) [(i+j,k) | i<-[x,3+x..x'],(j,k)<-[(0,y),(0,y'),(1.5,y'),(1.5,y)], (i+1.5) <= x']            
+  mapM_ (flip move Nothing) ([(i+j,k) | i<-[x,3+x..x'],(j,k)<-[(0,y),(0,y'),(1.5,y'),(1.5,y)], (i+1.5) <= x']::[Point2])
   -- The extruder is now at (<some x>,y), and it's time for the thinner lines
-  moveRel3 (0,0,layer conf) Nothing
+  moveRel ((0,0,layer conf)::Point3) Nothing
   setFeedrate 1750
   (x',_,_) <- getLocation
-  mapM_ (flip move2 Nothing) [(k,i+j) | i<-[y,2+y..y'],(j,k)<-[(0,x'),(0,x),(1,x),(1,x')], (i+1) <= y']
+  mapM_ (flip move Nothing) ([(k,i+j) | i<-[y,2+y..y'],(j,k)<-[(0,x'),(0,x),(1,x),(1,x')], (i+1) <= y']::[Point2])
