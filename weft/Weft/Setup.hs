@@ -75,14 +75,12 @@ raft conf s@(x,y) e = do
   withRate 270 $ do -- Go back and forth laying down thick lines with 1.5mm between their centers.
     move ((0,0,layer conf)::Point3) 
     extruderForward
-    mapM_ move $ zig s 1.5 e
-  withRate 1750 $ do -- The extruder is now at (<some x>,y), and it's time for the thinner lines
-    (x',y',z) <- getLocation
-    setLocation (x',y',z+layer conf)
-    mapM_ (move . swap) $ zig (y,x') 1 ((0,1)<.>e,x-x')
+    mapM_ move $ map (s<+>) $ zig 1.5 e
+  withRate 1750 $ do -- The time for the thinner lines
+    moveRel ((0,0,layer conf)::Point3) -- Move up before thin lines
+    (x',_,_) <- getLocation
+    mapM_ move  $ map (\(y',x)-> (x+x',y+y')) $  zig  1 ((0,1)<.>e,x-x')
   extruderOff
   
-zig::Point2->Double->Point2->[Point2]
-zig s dx (x',dy) = map (s<+>) $ zipWith (<+>) [(x,y)| x <- [0,dx..x'],y<-[0,0]] $ cycle  [(0,0),(0,dy),(0,dy),(0,0)] 
-
-swap (a,b) = (b,a)
+zig::Double->Point2->[Point2]
+zig dx (x',dy) = zipWith (<+>) [(x,y)| x <- [0,dx..x'],y<-[0,0]] $ cycle  [(0,0),(0,dy),(0,dy),(0,0)] 
