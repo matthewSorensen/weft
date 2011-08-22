@@ -3,7 +3,7 @@ module Weft.Setup (
   PrinterConfig (..),
   defaultConfig,
   printModel,
-  raft
+  raft  
   ) where
 import Weft.Monad
 import Control.Monad
@@ -70,13 +70,19 @@ end c = do
 
 -- Takes two corners (smaller values first) and prints a raft.
 raft::PrinterConfig->Point2->Point2->Print ()
-raft conf (x,y) (x',y') = do
+raft conf s@(x,y) e = do
   comment "raft"
   withRate 270 $ do -- Go back and forth laying down thick lines with 1.5mm between their centers.
     move ((0,0,layer conf)::Point3) 
     extruderForward
-    mapM_ move ([(i+j,k) | i<-[x,3+x..x'],(j,k)<-[(0,y),(0,y'),(1.5,y'),(1.5,y)], (i+1.5) <= x']::[Point2])
+    mapM_ move $ zig s 1.5 e
   withRate 1750 $ do -- The extruder is now at (<some x>,y), and it's time for the thinner lines
-    moveRel ((0,0,layer conf)::Point3) 
-    (x',_,_) <- getLocation
-    mapM_ move ([(k,i+j) | i<-[y,2+y..y'],(j,k)<-[(0,x'),(0,x),(1,x),(1,x')], (i+1) <= y']::[Point2])
+    (x',y',z) <- getLocation
+    setLocation (x',y',z+layer conf)
+    mapM_ (move . swap) $ zig (y,x') 1 ((0,1)<.>e,x-x')
+  extruderOff
+  
+zig::Point2->Double->Point2->[Point2]
+zig s dx (x',dy) = map (s<+>) $ zipWith (<+>) [(x,y)| x <- [0,dx..x'],y<-[0,0]] $ cycle  [(0,0),(0,dy),(0,dy),(0,0)] 
+
+swap (a,b) = (b,a)
