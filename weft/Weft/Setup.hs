@@ -1,4 +1,4 @@
-{-#LANGUAGE OverloadedStrings #-}
+{-#LANGUAGE OverloadedStrings, ExtendedDefaultRules  #-}
 module Weft.Setup (
   PrinterConfig (..),
   defaultConfig,
@@ -39,12 +39,12 @@ home = do
   emit "G92 Z10"
   emit "G1 Z0.0"
   homeMax "Z" 100
-  homeMin "X" 2500
   homeMin "Y" 2500
+  homeMin "X" 2500
   emit "M132 X Y Z A B"
 wait = do
   comment "waiting for things to heat up"
-  move ((52,-57,10)::Point3) 
+  withRate 2400 $ move ((52,-57,10)::Point3) 
   waitForTemp 0
   extruderForward
   pause 5000
@@ -72,14 +72,14 @@ end c = do
 raft::PrinterConfig->Point2->Point2->Print ()
 raft conf s@(x,y) e = do
   comment "raft"
-  withRate 270 $ do -- Go back and forth laying down thick lines with 1.5mm between their centers.
-    move ((0,0,layer conf)::Point3) 
+  withRate 350 $ do -- Go back and forth laying down thick lines with 1.5mm between their centers.
+    move ((0,0,0.1+layer conf)::Point3) 
     extruderForward
-    mapM_ move $ map (s<+>) $ zig 1.5 e
+    mapM_ move $ map (s<+>) $ zig 2 e
   withRate 1750 $ do -- The time for the thinner lines
     moveRel ((0,0,layer conf)::Point3) -- Move up before thin lines
     (x',_,_) <- getLocation
-    mapM_ move  $ map (\(y',x)-> (x+x',y+y')) $  zig  1 ((0,1)<.>e,x-x')
+    mapM_ move  $ map (\(y',x)-> (x+x',y+y')) $  zig  1.5 ((0,1)<.>e,x-x')
   extruderOff
   
 zig::Double->Point2->[Point2]

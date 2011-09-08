@@ -12,6 +12,8 @@ class Point a where
   (<->)::a->a->a
   lift3::a->Point3->Point3
   lift3Rel::a->Point3->Point3
+  unit::a->a
+  unit v = (1/(sqrt $ v <.> v)) <*> v
   
 instance Point Point3 where
   (x,y,z)<+>(x',y',z') = (x+x',y+y',z+z') 
