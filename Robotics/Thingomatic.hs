@@ -16,7 +16,7 @@ import Data.Maybe (listToMaybe)
 driver::(PrinterConfig->Print ())->IO ()
 driver act = do
   args <- getArgs
-  print <-  fmap act  $ maybe (return defaultConfig) (fmap read . readFile) $ fileOfType "txt" args
+  print <-  fmap act  $ maybe (return defaultConfig) (fmap read . readFile) $ fileOfType ".conf" args
   let toFile path = withFile path WriteMode $ ($ print) . runWithIOAction . hPutStrLn
     in  maybe (runWithIOAction putStrLn print) toFile  $ fileOfType ".gcode" args
  
