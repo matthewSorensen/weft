@@ -1,0 +1,15 @@
+Name:                weft
+Version:             0.0
+Synopsis:            makerbot gcode from haskell - like diatom's CodeThread
+Homepage:            https://github.com/matthewSorensen/weft
+License:             GPL-3
+License-file:        LICENSE
+Author:              Matthew Sorensen
+Maintainer:          infallibleone@gmail.com
+Category:            Robotics
+Build-type:          Simple
+Cabal-version:       >=1.2
+Library
+  Exposed-modules:     Robotics.Thingomatic, Robotics.Thingomatic.Commands, Robotics.Thingomatic.Points, Robotics.Thingomatic.Monad
+  Build-depends:       monads-fd, base, bytestring, containers, vector
+  Other-modules:     Geometry.Polygon
