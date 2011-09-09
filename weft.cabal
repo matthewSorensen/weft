@@ -11,5 +11,5 @@ Build-type:          Simple
 Cabal-version:       >=1.2
 Library
   Exposed-modules:     Robotics.Thingomatic, Robotics.Thingomatic.Commands, Robotics.Thingomatic.Points, Robotics.Thingomatic.Monad
-  Build-depends:       monads-fd, base, bytestring, containers, vector
+  Build-depends:       monads-fd, base, bytestring, containers, vector, filepath
   Other-modules:     Geometry.Polygon
