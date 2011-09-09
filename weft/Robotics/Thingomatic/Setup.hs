@@ -1,16 +1,15 @@
-{-#LANGUAGE OverloadedStrings, ExtendedDefaultRules  #-}
-module Weft.Setup (
+{-#LANGUAGE OverloadedStrings #-}
+module Robotics.Thingomatic.Setup (
   PrinterConfig (..),
   defaultConfig,
   printModel,
   raft  
   ) where
-import Weft.Monad
+import Robotics.Thingomatic.Monad
 import Control.Monad
-import Weft.Commands
-import Weft.Points
+import Robotics.Thingomatic.Commands
+import Robotics.Thingomatic.Points
 
-default(Double, Int)
 
 printModel::PrinterConfig->Print ()->Print ()
 printModel c model = initialize c >> home >> wait >> model >> end c
@@ -72,7 +71,7 @@ end c = do
 raft::PrinterConfig->Point2->Point2->Print ()
 raft conf s@(x,y) e = do
   comment "raft"
-  withRate 350 $ do -- Go back and forth laying down thick lines with 1.5mm between their centers.
+  withRate 350 $ do -- Go back and forth laying down thick lines with 2mm between their centers.
     move ((0,0,0.1+layer conf)::Point3) 
     extruderForward
     mapM_ move $ map (s<+>) $ zig 2 e

@@ -1,7 +1,7 @@
 {-# LANGUAGE OverloadedStrings #-}
-module Weft.Commands where
-import Weft.Monad
-import Weft.Points
+module Robotics.Thingomatic.Commands where
+import Robotics.Thingomatic.Monad
+import Robotics.Thingomatic.Points
 import qualified Data.ByteString.Char8 as B
 
 ap = B.append

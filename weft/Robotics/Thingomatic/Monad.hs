@@ -1,7 +1,7 @@
 {-# LANGUAGE OverloadedStrings, PackageImports, TupleSections #-} 
-module Weft.Monad where
+module Robotics.Thingomatic.Monad where
 
-import Weft.Points
+import Robotics.Thingomatic.Points
 import "monads-fd" Control.Monad.State
 import "monads-fd" Control.Monad.Trans
 import qualified Data.ByteString as B
@@ -32,7 +32,6 @@ runWithIOAction::(ByteString->IO ())->Print a->IO a
 runWithIOAction dest instr = let init = ((0,0,0), PState {output = dest, feedrate = 1000})
                              in evalStateT instr init
 
--- Throws an error if it can't find any feedrate                                
 getFeedrate::Print Double
 getFeedrate = fmap feedrate getPrinterState
   

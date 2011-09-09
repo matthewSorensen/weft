@@ -1,5 +1,5 @@
 {-# LANGUAGE TypeSynonymInstances #-}
-module Weft.Points 
+module Robotics.Thingomatic.Points 
        (Point3,Point2,Point (..)) where
 
 type Point3 = (Double,Double,Double)
