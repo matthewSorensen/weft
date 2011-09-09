@@ -10,6 +10,7 @@ Category:            Robotics
 Build-type:          Simple
 Cabal-version:       >=1.2
 Library
-  Exposed-modules:     Robotics.Thingomatic, Robotics.Thingomatic.Commands, Robotics.Thingomatic.Points, Robotics.Thingomatic.Monad
+  Exposed-modules:     Robotics.Thingomatic, Robotics.Thingomatic.Commands, Robotics.Thingomatic.Points, 
+                       Robotics.Thingomatic.Monad, Robotics.Thingomatic.Config
   Build-depends:       monads-fd, base, bytestring, containers, vector, filepath
   Other-modules:     Geometry.Polygon

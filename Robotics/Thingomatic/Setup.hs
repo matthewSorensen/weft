@@ -1,26 +1,17 @@
 {-#LANGUAGE OverloadedStrings #-}
 module Robotics.Thingomatic.Setup (
-  PrinterConfig (..),
-  defaultConfig,
   printModel,
   raft  
   ) where
 import Robotics.Thingomatic.Monad
 import Control.Monad
 import Robotics.Thingomatic.Commands
+import Robotics.Thingomatic.Config
 import Robotics.Thingomatic.Points
 
 
-printModel::PrinterConfig->Print ()->Print ()
-printModel c model = initialize c >> home >> wait >> model >> end c
-
-data PrinterConfig = Config { extSpeed::Double,
-                              extTemp::Int,
-                              platTemp::Int,
-                              layer::Double
-                            } deriving(Show,Read,Eq)                                  
-                                      
-defaultConfig = Config {extSpeed = 1.98, extTemp = 220, platTemp = 125, layer = 0.35}
+printModel::Print ()->Print ()
+printModel m = withConfig (\c-> initialize c >> home >> wait >> m >> end c)
 
 initialize conf = do
   comment "initialization - set modes, temperature etc"
@@ -68,15 +59,16 @@ end c = do
   extruderTemp 0 0
 
 -- Takes two corners (smaller values first) and prints a raft.
-raft::PrinterConfig->Point2->Point2->Print ()
-raft conf s@(x,y) e = do
+raft::Point2->Point2->Print ()
+raft s@(x,y) e = do
   comment "raft"
+  thick <- fmap layer getConfig
   withRate 350 $ do -- Go back and forth laying down thick lines with 2mm between their centers.
-    move ((0,0,0.1+layer conf)::Point3) 
+    move ((0,0,0.1+thick)::Point3) 
     extruderForward
     mapM_ move $ map (s<+>) $ zig 2 e
   withRate 1750 $ do -- The time for the thinner lines
-    moveRel ((0,0,layer conf)::Point3) -- Move up before thin lines
+    moveRel ((0,0,thick)::Point3) -- Move up before thin lines
     (x',_,_) <- getLocation
     mapM_ move  $ map (\(y',x)-> (x+x',y+y')) $  zig  1.5 ((0,1)<.>e,x-x')
   extruderOff

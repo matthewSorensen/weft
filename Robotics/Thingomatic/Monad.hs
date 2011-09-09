@@ -2,6 +2,7 @@
 module Robotics.Thingomatic.Monad where
 
 import Robotics.Thingomatic.Points
+import Robotics.Thingomatic.Config
 import "monads-fd" Control.Monad.State
 import "monads-fd" Control.Monad.Trans
 import qualified Data.ByteString as B
@@ -9,7 +10,9 @@ import qualified Data.ByteString as B
 type ByteString = B.ByteString
 
 data PrinterState = PState {output::ByteString->IO (),
-                            feedrate::Double}
+                            feedrate::Double,
+                            conf::PrinterConfig
+                            }
                
 type Print = StateT (Point3,PrinterState) IO
 
@@ -28,9 +31,9 @@ setPrinterState s = get >>= put . (,s) . fst
 emit::ByteString->Print ()
 emit b = getPrinterState >>= (\s-> liftIO $ (output s) b)
 
-runWithIOAction::(ByteString->IO ())->Print a->IO a
-runWithIOAction dest instr = let init = ((0,0,0), PState {output = dest, feedrate = 1000})
-                             in evalStateT instr init
+runWithIOAction::PrinterConfig->(ByteString->IO ())->Print a->IO a
+runWithIOAction conf dest instr = let init = ((0,0,0), PState {output = dest, feedrate = 1000, conf=conf})
+                                  in evalStateT instr init
 
 getFeedrate::Print Double
 getFeedrate = fmap feedrate getPrinterState
@@ -46,3 +49,7 @@ withRate r action = do
   setFeedrate r'
   return a
   
+withConfig::(PrinterConfig->Print a)->Print a
+withConfig  a = getPrinterState >>= a.conf
+
+getConfig = fmap conf getPrinterState
