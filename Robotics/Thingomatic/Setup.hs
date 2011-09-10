@@ -43,21 +43,22 @@ wait = do
 end::PrinterConfig->Print ()
 end c = do
   comment "shutting down"
+  extruderOff
   platformTemp 0 95
-  withRate 2400 $ mapM_ move ([(6.18,4.11,5.1),(5.25,4.0,5.1),(4.91,4.33,5.1)]::[Point3])
-  withRate 3300 $ move ((0,55)::Point2)
+  (x,y,_) <- getLocation
+  withRate 3500 $ move (x,y,100::Double)
   toolSpeed 0 $ extSpeed c
   extruderReverse
   pause 2000
   extruderOff
-  steppersOff
-  waitForTemp 0
+  extruderTemp 0 0
+  move ((55,100)::Point2)
   conveyorOn
   pause 14000
-  conveyorOff
+  conveyorOff 
   platformTemp 0 0
-  extruderTemp 0 0
-
+  waitForTemp 0
+  
 -- Takes two corners (smaller values first) and prints a raft.
 raft::Point2->Point2->Print ()
 raft s@(x,y) e = do
