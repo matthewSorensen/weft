@@ -52,7 +52,7 @@ end c = do
   pause 2000
   extruderOff
   extruderTemp 0 0
-  move ((55,100)::Point2)
+  move ((0,50)::Point2)
   conveyorOn
   pause 14000
   conveyorOff 
